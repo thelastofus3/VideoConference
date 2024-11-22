@@ -1,5 +1,5 @@
 {
-  "name": "videoconference",
+  "name": "agora-sdk-quickstart",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,8 +10,6 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "agora-rtc-react": "^2.3.0",
-    "agora-rtc-sdk-ng": "^4.22.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

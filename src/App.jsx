@@ -1,35 +1,92 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
+import {useState} from "react";
+import {
+    LocalUser,
+    RemoteUser, useIsConnected,
+    useJoin,
+    useLocalCameraTrack,
+    useLocalMicrophoneTrack,
+    usePublish, useRemoteUsers
+} from "agora-rtc-react";
 
 function App() {
-  const [count, setCount] = useState(0)
+    const [calling, setCalling] = useState(false);
+    const isConnected = useIsConnected(); // Store the user's connection status
+    const [appId] = useState("d31faec490be4c68a3d3c659585719fe");
+    const [channel, setChannel] = useState("");
+    const [token] = useState("");
 
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    useJoin({appid: appId, channel: channel, token: token ? token : null}, calling);
+
+    const [micOn, setMic] = useState(true);
+    const [cameraOn, setCamera] = useState(true);
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
+    const { localCameraTrack } = useLocalCameraTrack(cameraOn);
+    usePublish([localMicrophoneTrack, localCameraTrack]);
+
+    const remoteUsers = useRemoteUsers();
+
+    return (
+        <>
+            <div className="room">
+                {isConnected ? (
+                    <div className="user-list">
+                        <div className="user">
+                            <LocalUser
+                                audioTrack={localMicrophoneTrack}
+                                cameraOn={cameraOn}
+                                micOn={micOn}
+                                videoTrack={localCameraTrack}
+                                cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
+                            >
+                                <samp className="user-name">You</samp>
+                            </LocalUser>
+                        </div>
+                        {remoteUsers.map((user) => (
+                            <div className="user" key={user.uid}>
+                                <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
+                                    <samp className="user-name">{user.uid}</samp>
+                                </RemoteUser>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="join-room">
+                        <input
+                            onChange={e => setChannel(e.target.value)}
+                            placeholder="<Your channel Name>"
+                            value={channel}
+                        />
+                        <button
+                            className={`join-channel ${!appId || !channel ? "disabled" : ""}`}
+                            disabled={!appId || !channel}
+                            onClick={() => setCalling(true)}
+                        >
+                            <span>Join Channel</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+            {isConnected && (
+                <div className="control">
+                    <div className="left-control">
+                        <button className="btn" onClick={() => setMic(a => !a)}>
+                            <i className={`i-microphone ${!micOn ? "off" : ""}`} />
+                        </button>
+                        <button className="btn" onClick={() => setCamera(a => !a)}>
+                            <i className={`i-camera ${!cameraOn ? "off" : ""}`} />
+                        </button>
+                    </div>
+                    <button
+                        className={`btn btn-phone ${calling ? "btn-phone-active" : ""}`}
+                        onClick={() => setCalling(a => !a)}
+                    >
+                        {calling ? <i className="i-phone-hangup" /> : <i className="i-mdi-phone" />}
+                    </button>
+                </div>
+            )}
+        </>
+    );
 }
 
 export default App
