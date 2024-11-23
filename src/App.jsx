@@ -1,70 +1,46 @@
-import './App.css'
+import './css/App.css'
+import React from 'react';
 import {useState} from "react";
 import {
-    LocalUser,
-    RemoteUser, useIsConnected,
+    useIsConnected,
     useJoin,
     useLocalCameraTrack,
     useLocalMicrophoneTrack,
     usePublish, useRemoteUsers
 } from "agora-rtc-react";
+import {JoinRoom} from "./JoinRoom.jsx";
+import {UserList} from "./UserList.jsx";
+import Sparkles from "./Sparkles.jsx";
 
 function App() {
     const [calling, setCalling] = useState(false);
     const isConnected = useIsConnected(); // Store the user's connection status
-    const [appId] = useState("d31faec490be4c68a3d3c659585719fe");
+    const [appId] = useState("90d6a443243e4f8d81bbbc1903abae2e");
     const [channel, setChannel] = useState("");
     const [token] = useState("");
 
     useJoin({appid: appId, channel: channel, token: token ? token : null}, calling);
 
+    const encoderConfig = {
+        width: { min: 640, ideal: 1920, max: 1920 },
+        height: { min: 480, ideal: 1080, max: 1080 },
+    };
     const [micOn, setMic] = useState(true);
     const [cameraOn, setCamera] = useState(true);
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
-    const { localCameraTrack } = useLocalCameraTrack(cameraOn);
+    const { localCameraTrack } = useLocalCameraTrack(cameraOn, {encoderConfig});
     usePublish([localMicrophoneTrack, localCameraTrack]);
 
     const remoteUsers = useRemoteUsers();
 
     return (
         <>
-            <div className="room">
+            <Sparkles />
+            <div className="rooms">
                 {isConnected ? (
-                    <div className="user-list">
-                        <div className="user">
-                            <LocalUser
-                                audioTrack={localMicrophoneTrack}
-                                cameraOn={cameraOn}
-                                micOn={micOn}
-                                videoTrack={localCameraTrack}
-                                cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg"
-                            >
-                                <samp className="user-name">You</samp>
-                            </LocalUser>
-                        </div>
-                        {remoteUsers.map((user) => (
-                            <div className="user" key={user.uid}>
-                                <RemoteUser cover="https://www.agora.io/en/wp-content/uploads/2022/10/3d-spatial-audio-icon.svg" user={user}>
-                                    <samp className="user-name">{user.uid}</samp>
-                                </RemoteUser>
-                            </div>
-                        ))}
-                    </div>
+                    <UserList localMicrophoneTrack={localMicrophoneTrack} cameraOn={cameraOn} micOn={micOn} localCameraTrack={localCameraTrack} remoteUsers={remoteUsers} />
                 ) : (
-                    <div className="join-room">
-                        <input
-                            onChange={e => setChannel(e.target.value)}
-                            placeholder="<Your channel Name>"
-                            value={channel}
-                        />
-                        <button
-                            className={`join-channel ${!appId || !channel ? "disabled" : ""}`}
-                            disabled={!appId || !channel}
-                            onClick={() => setCalling(true)}
-                        >
-                            <span>Join Channel</span>
-                        </button>
-                    </div>
+                    <JoinRoom setChannel={setChannel} setCalling={setCalling} appId={appId} token={token} />
                 )}
             </div>
             {isConnected && (
