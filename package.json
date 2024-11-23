@@ -1,9 +1,9 @@
 {
+  "homepage": "http://thelastofus3.github.io/VideoConference",
   "name": "videoconference",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://github.com/thelastofus3/VideoConference",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
